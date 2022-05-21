@@ -1,0 +1,46 @@
+#!/bin/bash
+
+#Somewhat based on https://github.com/igorlogius/unattended-flatpak-upgrades
+
+#XXX Check that XDG_RUNTIME_DIR is set for "flatpak ps"
+#XXX Check that DBUS_SESSION_BUS_ADDRESS is set for "notify-send"
+#XXX Or find a likely process and steal from their env? sway/mutter/kwin? dbus-daemon?
+
+mkdir -p ~/.var/log
+LOG=~/.var/log/update-flatpak.log
+echo "Starting update-flatpak at $(date)" >$LOG
+
+filter () { #Reformat and filter out harmless sections, then sort
+    awk '/^\[.+\]$/ {grp=$line; next} /./ {print grp,$line}' |
+        egrep -v '^\[(Extra Data|Application|Runtime|Instance)\] ' |
+        sort
+}
+flatpak remote-ls --updates --app --columns=application,origin | {
+    while read APP ORIGIN; do
+        echo "Checking for permissions changes for $APP" >>$LOG
+        if diff -y --suppress-common-lines -w -B \
+                <(flatpak info -m $APP | filter) \
+                <(flatpak remote-info --show-metadata $ORIGIN $APP | filter) >>$LOG; then
+            echo "No changes, updating" >>$LOG
+            flatpak update --noninteractive --app $APP &>>$LOG
+        else
+            echo "^^^^CHANGES FOUND^^^^" >>$LOG
+            echo "If the changes are OK, run 'flatpak update $APP'" >>$LOG
+            notify-send "Flatpak permissions changed for $APP" "Check $LOG"
+        fi
+    done
+}
+
+#XXX Does this find flatpaks whose runtimes have updated, but the app
+#    hasn't? Can that even happen?
+NEED_RESTART=$(join \
+                   <(flatpak ps --columns=application:f,commit:f) \
+                   <(flatpak list --app --columns=application:f,active:f) \
+                   | awk '$2!=$3 {print $1}')
+flatpak ps --columns=application:f,commit:f >/tmp/foo #XXX empty from cron!
+if [ -n "$NEED_RESTART" ]; then
+    echo "Restarts needed for $NEED_RESTART" >>$LOG
+    notify-send "Flatpak Restart(s) Required" "$NEED_RESTART"
+fi
+
+echo "Done at $(date)" >>$LOG
