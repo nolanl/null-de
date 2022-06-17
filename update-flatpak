@@ -18,7 +18,7 @@ filter () { #Reformat and filter out harmless sections, then sort
 flatpak remote-ls --updates --app --columns=application,origin | {
     while read APP ORIGIN; do
         echo "Checking for permissions changes for $APP" >>$LOG
-        if diff -y --suppress-common-lines -w -B \
+        if diff -y --suppress-common-lines -w -B -W 30000 \
                 <(flatpak info -m $APP | filter) \
                 <(flatpak remote-info --show-metadata $ORIGIN $APP | filter) >>$LOG; then
             echo "No changes, updating" >>$LOG
