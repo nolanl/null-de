@@ -6,10 +6,18 @@
 #XXX Check that DBUS_SESSION_BUS_ADDRESS is set for "notify-send"
 #XXX Or find a likely process and steal from their env? sway/mutter/kwin? dbus-daemon?
 
+#XXX add a flag to skip update and show perms diffs character-by-character w/ color, using
+#    "git diff --word-diff=color --word-diff-regex=.", then suggest running it when diffs
+#    are found. Fallback to dumb diff if "git" is not installed.
+
 mkdir -p ~/.var/log
 LOG=~/.var/log/update-flatpak.log
 echo "Starting update-flatpak at $(date)" >$LOG
 
+echo "Updating runtimes" >>$LOG
+flatpak update --noninteractive --runtime &>>$LOG
+
+echo "Updating apps" >>$LOG
 filter () { #Reformat and filter out harmless sections, then sort
     awk '/^\[.+\]$/ {grp=$line; next} /./ {print grp,$line}' |
         egrep -v '^\[(Extra Data|Application|Runtime|Instance|Environment|Extension [^ ]+)\] ' |
@@ -31,8 +39,8 @@ flatpak remote-ls --updates --app --columns=application,origin | {
     done
 }
 
-#XXX Does this find flatpaks whose runtimes have updated, but the app
-#    hasn't? Can that even happen?
+#XXX This will not warn if the app didn't update, but its runtime did!
+echo "Checking for running apps that need to be restarted" >>$LOG
 NEED_RESTART=$(join \
                    <(flatpak ps --columns=application:f,commit:f) \
                    <(flatpak list --app --columns=application:f,active:f) \
