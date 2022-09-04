@@ -37,7 +37,6 @@ NEED_RESTART=$(join \
                    <(flatpak ps --columns=application:f,commit:f) \
                    <(flatpak list --app --columns=application:f,active:f) \
                    | awk '$2!=$3 {print $1}')
-flatpak ps --columns=application:f,commit:f >/tmp/foo #XXX empty from cron!
 if [ -n "$NEED_RESTART" ]; then
     echo "Restarts needed for $NEED_RESTART" >>$LOG
     notify-send "Flatpak Restart(s) Required" "$NEED_RESTART"
