@@ -20,7 +20,7 @@ flatpak update --noninteractive --runtime &>>$LOG
 echo "Updating apps" >>$LOG
 filter () { #Reformat and filter out harmless sections, then sort
     awk '/^\[.+\]$/ {grp=$line; next} /./ {print grp,$line}' |
-        egrep -v '^\[(Extra Data|Application|Runtime|Instance|Environment|Extension [^ ]+)\] ' |
+        egrep -v '^\[(Build|Extra Data|Application|Runtime|Instance|Environment|Extension [^ ]+)\] ' |
         sort
 }
 flatpak remote-ls --updates --app --columns=application,origin | {
