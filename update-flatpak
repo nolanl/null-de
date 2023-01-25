@@ -34,7 +34,7 @@ flatpak remote-ls --updates --app --columns=application,origin | {
         else
             echo "^^^^CHANGES FOUND^^^^" >>$LOG
             echo "If the changes are OK, run 'flatpak update $APP'" >>$LOG
-            notify-send "Flatpak permissions changed for $APP" "Check $LOG"
+            notify-send -t 0 "Flatpak permissions changed for $APP" "Check $LOG"
         fi
     done
 }
@@ -47,7 +47,7 @@ NEED_RESTART=$(join \
                    | awk '$2!=$3 {print $1}')
 if [ -n "$NEED_RESTART" ]; then
     echo "Restarts needed for $NEED_RESTART" >>$LOG
-    notify-send "Flatpak Restart(s) Required" "$NEED_RESTART"
+    notify-send -t 0 "Flatpak Restart(s) Required" "$NEED_RESTART"
 fi
 
 echo "Done at $(date)" >>$LOG
