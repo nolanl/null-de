@@ -28,7 +28,8 @@ flatpak remote-ls --updates --app --columns=application,origin | {
         echo "Checking for permissions changes for $APP" >>$LOG
         if diff -y --suppress-common-lines -w -B -W 30000 \
                 <(flatpak info -m $APP | filter) \
-                <(flatpak remote-info --show-metadata $ORIGIN $APP | filter) >>$LOG; then
+                <(flatpak remote-info --show-metadata $ORIGIN $APP | filter) | \
+                tr '\t' ' ' >>$LOG; then
             echo "No changes, updating" >>$LOG
             flatpak update --noninteractive --app $APP &>>$LOG
         else
