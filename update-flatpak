@@ -43,8 +43,8 @@ flatpak remote-ls --updates --app --columns=application,origin | {
 #XXX This will not warn if the app didn't update, but its runtime did!
 echo "Checking for running apps that need to be restarted" >>$LOG
 NEED_RESTART=$(join \
-                   <(flatpak ps --columns=application:f,commit:f) \
-                   <(flatpak list --app --columns=application:f,active:f) \
+                   <(flatpak ps --columns=application:f,commit:f | sort) \
+                   <(flatpak list --app --columns=application:f,active:f | sort) \
                    | awk '$2!=$3 {print $1}')
 if [ -n "$NEED_RESTART" ]; then
     echo "Restarts needed for $NEED_RESTART" >>$LOG
