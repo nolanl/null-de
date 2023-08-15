@@ -10,6 +10,8 @@
 #    "git diff --word-diff=color --word-diff-regex=.", then suggest running it when diffs
 #    are found. Fallback to dumb diff if "git" is not installed.
 
+set -o pipefail
+
 mkdir -p ~/.var/log
 LOG=~/.var/log/update-flatpak.log
 echo "Starting update-flatpak at $(date)" >$LOG
